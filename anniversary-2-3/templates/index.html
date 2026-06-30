@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Story ♡</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ivory:     #FAF7F4;
+  --blush:     #F2D5D5;
+  --rose:      #C9A0A0;
+  --deep-rose: #A67878;
+  --sage:      #B5C4B1;
+  --deep-sage: #8A9E86;
+  --charcoal:  #2C2C2C;
+  --warm-gray: #7A7474;
+  --gold:      #C8A96E;
+  --gold-light:#E8D5A8;
+}
+html { scroll-behavior: smooth; }
+body { background:var(--ivory); color:var(--charcoal); font-family:'Inter',sans-serif; font-weight:300; overflow-x:hidden; }
+
+/* PETALS */
+.petals-canvas { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+.petal { position:absolute; top:-30px; border-radius:50% 10% 50% 10%; opacity:.35; animation:petalFall linear infinite; }
+@keyframes petalFall {
+  0%   { transform:translateY(0) rotate(0deg) translateX(0); opacity:.4; }
+  50%  { transform:translateY(50vh) rotate(180deg) translateX(30px); opacity:.2; }
+  100% { transform:translateY(110vh) rotate(360deg) translateX(-20px); opacity:0; }
+}
+
+/* NAV */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; justify-content:center; align-items:center; gap:2.5rem;
+  padding:1.1rem 2rem;
+  background:rgba(250,247,244,.9); backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(201,160,160,.18);
+}
+nav a { text-decoration:none; font-size:.7rem; letter-spacing:.2em; text-transform:uppercase; color:var(--warm-gray); transition:color .3s; }
+nav a:hover { color:var(--deep-rose); }
+.nav-sep { color:var(--rose); font-size:.9rem; }
+
+/* HERO */
+#hero { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:6rem 2rem 4rem; z-index:1; }
+.hero-eyebrow { font-size:.65rem; letter-spacing:.3em; text-transform:uppercase; color:var(--deep-rose); margin-bottom:1.5rem; }
+.hero-title { font-family:'Playfair Display',serif; font-size:clamp(3rem,8vw,6rem); font-weight:400; line-height:1.1; margin-bottom:.6rem; }
+.hero-title em { font-style:italic; color:var(--deep-rose); }
+.hero-sub { font-family:'Cormorant Garamond',serif; font-size:clamp(1.1rem,2.5vw,1.5rem); font-style:italic; color:var(--warm-gray); margin-bottom:3rem; }
+.hero-divider { display:flex; align-items:center; gap:1rem; margin-bottom:2.5rem; }
+.hdl { width:60px; height:1px; background:linear-gradient(90deg,transparent,var(--rose)); }
+.hdr { width:60px; height:1px; background:linear-gradient(90deg,var(--rose),transparent); }
+.hero-divider span { color:var(--rose); }
+.scroll-hint { position:absolute; bottom:2.5rem; display:flex; flex-direction:column; align-items:center; gap:.5rem; color:var(--rose); opacity:.55; animation:bobble 2.2s ease-in-out infinite; font-size:.62rem; letter-spacing:.18em; text-transform:uppercase; }
+.scroll-hint svg { width:18px; }
+@keyframes bobble { 0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)} }
+
+/* SECTIONS */
+section { position:relative; z-index:1; padding:6rem 2rem; }
+.inner { max-width:1100px; margin:0 auto; }
+.inner-narrow { max-width:780px; margin:0 auto; }
+.section-eyebrow { font-size:.63rem; letter-spacing:.3em; text-transform:uppercase; color:var(--deep-rose); margin-bottom:.6rem; display:block; }
+.section-title { font-family:'Playfair Display',serif; font-size:clamp(2rem,4vw,3rem); font-weight:400; margin-bottom:.4rem; }
+.section-title em { font-style:italic; color:var(--deep-rose); }
+.section-desc { font-size:.88rem; line-height:1.85; color:var(--warm-gray); max-width:420px; }
+.section-header { margin-bottom:3rem; }
+
+/* CARDS — HUGS */
+#hugs { background:var(--ivory); }
+.hugs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.4rem; margin-bottom:2rem; }
+.hug-card { background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 2px 20px rgba(201,160,160,.1); transition:transform .3s,box-shadow .3s; position:relative; }
+.hug-card:hover { transform:translateY(-4px); box-shadow:0 8px 32px rgba(201,160,160,.2); }
+.hug-card img { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; }
+.hug-placeholder { width:100%; aspect-ratio:4/3; background:linear-gradient(135deg,var(--blush),var(--gold-light)); display:flex; align-items:center; justify-content:center; font-size:3rem; }
+.hug-card-body { padding:1.1rem 1.3rem 1.4rem; }
+.card-date { font-size:.63rem; letter-spacing:.18em; text-transform:uppercase; color:var(--rose); margin-bottom:.35rem; }
+.hug-card-memory { font-family:'Cormorant Garamond',serif; font-size:1.05rem; font-style:italic; color:var(--charcoal); line-height:1.65; }
+.card-del { position:absolute; top:10px; right:10px; background:rgba(255,255,255,.88); border:none; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:.75rem; color:var(--deep-rose); opacity:0; transition:opacity .2s; backdrop-filter:blur(4px); }
+.hug-card:hover .card-del { opacity:1; }
+
+/* MEMORY WALL */
+#memories { background:linear-gradient(180deg,var(--ivory) 0%,#F7F0F0 100%); }
+.masonry { columns:3; column-gap:1.2rem; }
+@media(max-width:768px){.masonry{columns:2}}
+@media(max-width:480px){.masonry{columns:1}}
+.mem-card { break-inside:avoid; background:#fff; border-radius:14px; overflow:hidden; margin-bottom:1.2rem; box-shadow:0 2px 18px rgba(180,144,144,.1); transition:transform .3s; position:relative; }
+.mem-card:hover { transform:scale(1.015); }
+.mem-card img { width:100%; display:block; object-fit:cover; }
+.mem-placeholder { width:100%; aspect-ratio:1; background:linear-gradient(135deg,var(--sage),var(--blush)); display:flex; align-items:center; justify-content:center; font-size:2.5rem; }
+.mem-card-body { padding:.95rem 1.15rem 1.2rem; }
+.mem-tag { display:inline-block; background:var(--blush); color:var(--deep-rose); font-size:.58rem; letter-spacing:.15em; text-transform:uppercase; padding:.2rem .55rem; border-radius:50px; margin-bottom:.4rem; }
+.mem-text { font-family:'Cormorant Garamond',serif; font-size:1rem; font-style:italic; color:var(--charcoal); line-height:1.65; }
+.mem-card:hover .card-del { opacity:1; }
+
+/* MILESTONES */
+#milestones { background:var(--ivory); }
+.timeline { position:relative; padding-left:2.5rem; }
+.timeline::before { content:''; position:absolute; left:.6rem; top:0; bottom:0; width:1px; background:linear-gradient(180deg,var(--blush),var(--sage),var(--blush)); }
+.tl-item { position:relative; margin-bottom:2.2rem; animation:fadeUp .45s ease both; }
+.tl-dot { position:absolute; left:-2.5rem; top:.3rem; width:14px; height:14px; border-radius:50%; background:var(--ivory); border:2px solid var(--rose); transition:background .2s; }
+.tl-dot.gold { border-color:var(--gold); }
+.tl-item:hover .tl-dot { background:var(--rose); }
+.tl-item:hover .tl-dot.gold { background:var(--gold); }
+.tl-content { background:#fff; border-radius:14px; padding:1.1rem 1.4rem 1.3rem; box-shadow:0 2px 16px rgba(180,144,144,.09); transition:box-shadow .3s; position:relative; }
+.tl-item:hover .tl-content { box-shadow:0 6px 28px rgba(180,144,144,.18); }
+.tl-date { font-size:.62rem; letter-spacing:.2em; text-transform:uppercase; color:var(--rose); margin-bottom:.3rem; }
+.tl-label { font-family:'Playfair Display',serif; font-size:1.15rem; color:var(--charcoal); margin-bottom:.25rem; }
+.tl-note { font-size:.84rem; color:var(--warm-gray); line-height:1.7; }
+.tl-emoji { position:absolute; top:.95rem; right:1.2rem; font-size:1.4rem; }
+.tl-del { position:absolute; bottom:.75rem; right:1.2rem; background:none; border:none; cursor:pointer; font-size:.65rem; color:var(--rose); opacity:0; transition:opacity .2s; letter-spacing:.12em; text-transform:uppercase; font-family:'Inter',sans-serif; }
+.tl-item:hover .tl-del { opacity:1; }
+
+/* MAP SEARCH */
+.map-search-wrap { margin-bottom:1rem; }
+.map-search-input { width:100%; background:#fff; border:1.5px solid rgba(201,160,160,.3); border-radius:50px; padding:.72rem 1.4rem; font-family:'Inter',sans-serif; font-size:.87rem; color:var(--charcoal); outline:none; transition:border-color .2s,box-shadow .2s; box-shadow:0 2px 12px rgba(180,144,144,.07); }
+.map-search-input:focus { border-color:var(--rose); box-shadow:0 0 0 3px rgba(201,160,160,.15); }
+.map-search-input::placeholder { color:var(--warm-gray); }
+
+/* MEMORY MAP */
+#memories { background:linear-gradient(180deg,var(--ivory) 0%,#F7F0F0 100%); }
+#memory-map { width:100%; height:520px; border-radius:20px; overflow:hidden; box-shadow:0 4px 32px rgba(139,158,134,.18); margin-bottom:2rem; z-index:1; }
+
+/* POPUP IMAGE */
+.map-popup-img { width:100%; height:130px; object-fit:cover; border-radius:8px; margin-bottom:.6rem; display:block; }
+
+#map { width:100%; height:520px; border-radius:20px; overflow:hidden; box-shadow:0 4px 32px rgba(139,158,134,.18); margin-bottom:2rem; z-index:1; }
+.leaflet-popup-content-wrapper { border-radius:14px !important; box-shadow:0 4px 24px rgba(44,44,44,.12) !important; border:none !important; }
+.leaflet-popup-content { font-family:'Inter',sans-serif; font-size:.85rem; color:var(--charcoal); margin:0 !important; padding:0 !important; }
+.map-popup { padding:.9rem 1rem 1rem; min-width:160px; }
+.map-popup-emoji { font-size:1.5rem; margin-bottom:.3rem; }
+.map-popup-label { font-family:'Playfair Display',serif; font-size:1.05rem; margin-bottom:.2rem; }
+.map-popup-date { font-size:.62rem; letter-spacing:.15em; text-transform:uppercase; color:var(--rose); margin-bottom:.35rem; }
+.map-popup-note { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:.95rem; color:var(--warm-gray); line-height:1.5; margin-bottom:.6rem; }
+.map-popup-del { background:none; border:none; cursor:pointer; font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:var(--rose); font-family:'Inter',sans-serif; padding:0; }
+.places-list { display:flex; flex-wrap:wrap; gap:.75rem; margin-bottom:2rem; }
+.place-chip { display:inline-flex; align-items:center; gap:.5rem; background:#fff; border:1px solid rgba(201,160,160,.25); border-radius:50px; padding:.45rem .9rem .45rem .7rem; font-size:.8rem; color:var(--charcoal); box-shadow:0 1px 8px rgba(180,144,144,.08); cursor:pointer; transition:box-shadow .2s; }
+.place-chip:hover { box-shadow:0 3px 16px rgba(180,144,144,.18); }
+.place-chip-emoji { font-size:1rem; }
+.map-click-hint { font-size:.78rem; color:var(--warm-gray); margin-bottom:1.2rem; display:flex; align-items:center; gap:.5rem; }
+.map-click-hint span { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--rose); animation:pulse 1.8s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+.btn-outline-rose { display:inline-flex; align-items:center; gap:.6rem; background:transparent; border:1.5px solid var(--rose); color:var(--deep-rose); font-family:'Inter',sans-serif; font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; padding:.75rem 1.8rem; border-radius:50px; cursor:pointer; transition:all .3s; }
+.btn-outline-rose:hover { background:var(--rose); color:#fff; }
+.btn-outline-sage { display:inline-flex; align-items:center; gap:.6rem; background:transparent; border:1.5px solid var(--sage); color:var(--deep-sage); font-family:'Inter',sans-serif; font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; padding:.75rem 1.8rem; border-radius:50px; cursor:pointer; transition:all .3s; }
+.btn-outline-sage:hover { background:var(--sage); color:#fff; }
+
+/* MODAL */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(44,44,44,.42); backdrop-filter:blur(8px); z-index:200; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--ivory); border-radius:22px; padding:2.4rem; width:min(500px,93vw); position:relative; box-shadow:0 24px 64px rgba(44,44,44,.2); max-height:92vh; overflow-y:auto; }
+.modal-title { font-family:'Playfair Display',serif; font-size:1.5rem; margin-bottom:1.5rem; color:var(--charcoal); }
+.modal-close { position:absolute; top:1.2rem; right:1.3rem; background:none; border:none; cursor:pointer; font-size:1.15rem; color:var(--warm-gray); line-height:1; }
+.form-group { margin-bottom:1.1rem; }
+.form-group label { display:block; font-size:.67rem; letter-spacing:.15em; text-transform:uppercase; color:var(--warm-gray); margin-bottom:.45rem; }
+.form-group input, .form-group textarea, .form-group select { width:100%; background:#fff; border:1.5px solid rgba(201,160,160,.3); border-radius:10px; padding:.72rem 1rem; font-family:'Inter',sans-serif; font-size:.87rem; color:var(--charcoal); outline:none; transition:border-color .2s; resize:none; }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color:var(--rose); }
+.upload-zone { border:2px dashed rgba(201,160,160,.4); border-radius:12px; padding:1.8rem; text-align:center; cursor:pointer; transition:border-color .2s,background .2s; position:relative; overflow:hidden; }
+.upload-zone:hover { border-color:var(--rose); background:rgba(242,213,213,.1); }
+.upload-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.upload-icon { font-size:2rem; margin-bottom:.4rem; }
+.upload-text { font-size:.78rem; color:var(--warm-gray); }
+.upload-preview { width:100%; border-radius:8px; margin-top:.7rem; display:none; max-height:160px; object-fit:cover; }
+.btn-submit { width:100%; background:linear-gradient(135deg,var(--deep-rose),var(--rose)); color:#fff; border:none; border-radius:50px; padding:.88rem; font-family:'Inter',sans-serif; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; transition:opacity .2s; margin-top:.4rem; }
+.btn-submit:hover { opacity:.88; }
+.btn-submit:disabled { opacity:.5; cursor:not-allowed; }
+
+/* TOAST */
+.toast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(20px); background:var(--charcoal); color:#fff; font-size:.8rem; padding:.75rem 1.5rem; border-radius:50px; z-index:999; opacity:0; transition:all .4s; pointer-events:none; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* EMPTY */
+.empty-state { text-align:center; padding:3.5rem 2rem; color:var(--warm-gray); font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.1rem; }
+.empty-state .ei { font-size:2.5rem; display:block; margin-bottom:.8rem; }
+
+/* LOADING */
+.loading { text-align:center; padding:2rem; color:var(--rose); font-size:.8rem; letter-spacing:.15em; text-transform:uppercase; }
+
+/* FOOTER */
+footer { position:relative; z-index:1; text-align:center; padding:4rem 2rem; border-top:1px solid rgba(201,160,160,.15); }
+.footer-heart { font-size:2rem; display:block; margin-bottom:.8rem; animation:heartbeat 1.9s ease-in-out infinite; }
+@keyframes heartbeat { 0%,100%{transform:scale(1)} 14%{transform:scale(1.15)} 28%{transform:scale(1)} 42%{transform:scale(1.08)} 56%{transform:scale(1)} }
+.footer-text { font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-style:italic; color:var(--warm-gray); }
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<div class="petals-canvas" id="petals"></div>
+
+<nav>
+  <a href="#hugs">Hugs</a>
+  <span class="nav-sep">♡</span>
+  <a href="#memories">Memory Map</a>
+  <span class="nav-sep">♡</span>
+  <a href="#milestones">Milestones</a>
+  <span class="nav-sep">♡</span>
+  <a href="#places">Our Map</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <p class="hero-eyebrow" id="hero-date"></p>
+  <h1 class="hero-title">You & <em>Me</em></h1>
+  <p class="hero-sub">A little archive of all the love we've made</p>
+  <div class="hero-divider">
+    <div class="hdl"></div><span>✦</span><div class="hdr"></div>
+  </div>
+  <div class="scroll-hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    Scroll to explore
+  </div>
+</section>
+
+<!-- HUGS -->
+<section id="hugs">
+  <div class="inner">
+    <div class="section-header">
+      <span class="section-eyebrow">wrapped in warmth</span>
+      <h2 class="section-title">Our <em>Hugs</em></h2>
+      <p class="section-desc">Every hug holds a universe. Add a photo and the memory that came with it.</p>
+    </div>
+    <div class="hugs-grid" id="hugs-grid"><div class="loading">Loading…</div></div>
+    <button class="btn-outline-rose" onclick="openModal('hug')"><span>+</span> Add a Hug</button>
+  </div>
+</section>
+
+<!-- MEMORY MAP -->
+<section id="memories">
+  <div class="inner">
+    <div class="section-header">
+      <span class="section-eyebrow">frames of forever</span>
+      <h2 class="section-title">Memory <em>Map</em></h2>
+      <p class="section-desc">Every place that holds a memory — pinned on the map with a photo and a feeling.</p>
+    </div>
+    <div class="map-search-wrap">
+      <input class="map-search-input" id="mem-map-search" type="text" placeholder="🔍  Search memories by name or story…" oninput="filterMemoryMap(this.value)">
+    </div>
+    <p class="map-click-hint"><span></span> Click anywhere on the map to add a memory pin</p>
+    <div id="memory-map"></div>
+    <div class="places-list" id="memory-places-list"></div>
+    <button class="btn-outline-rose" onclick="openModal('memory')" style="margin-top:1.5rem"><span>+</span> Add a Memory</button>
+  </div>
+</section>
+
+<!-- MILESTONES -->
+<section id="milestones">
+  <div class="inner-narrow">
+    <div class="section-header">
+      <span class="section-eyebrow">chapters of us</span>
+      <h2 class="section-title">Our <em>Milestones</em></h2>
+      <p class="section-desc">Every moment that changed everything — the dates that made us.</p>
+    </div>
+    <div class="timeline" id="timeline"><div class="loading">Loading…</div></div>
+    <button class="btn-outline-sage" onclick="openModal('milestone')" style="margin-top:1rem"><span>+</span> Add a Milestone</button>
+  </div>
+</section>
+
+<!-- PLACES MAP -->
+<section id="places">
+  <div class="inner">
+    <div class="section-header">
+      <span class="section-eyebrow">everywhere we've been</span>
+      <h2 class="section-title">Our <em>Map</em></h2>
+      <p class="section-desc">Every place that holds a piece of us — click anywhere on the map to drop a pin.</p>
+    </div>
+    <div class="map-search-wrap">
+      <input class="map-search-input" id="places-map-search" type="text" placeholder="🔍  Search places by name or memory…" oninput="filterPlacesMap(this.value)">
+    </div>
+    <p class="map-click-hint"><span></span> Click anywhere on the map to add a place</p>
+    <div id="map"></div>
+    <div class="places-list" id="places-list"></div>
+    <button class="btn-outline-sage" onclick="openModal('place')"><span>+</span> Add a Place</button>
+  </div>
+</section>
+
+<footer>
+  <span class="footer-heart">♡</span>
+  <p class="footer-text">made with love, for us</p>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 class="modal-title" id="modal-title">Add</h3>
+
+    <!-- HUG FORM -->
+    <div id="hug-form">
+      <div class="form-group"><label>Date</label><input type="date" id="hug-date"></div>
+      <div class="form-group">
+        <label>Photo</label>
+        <div class="upload-zone">
+          <input type="file" accept="image/*" id="hug-file" onchange="preview('hug-file','hug-prev')">
+          <div class="upload-icon">🫂</div>
+          <div class="upload-text">Click to upload a photo</div>
+          <img class="upload-preview" id="hug-prev">
+        </div>
+      </div>
+      <div class="form-group"><label>Memory</label><textarea id="hug-memory" rows="3" placeholder="What made this hug special?"></textarea></div>
+      <button class="btn-submit" id="hug-submit" onclick="submitHug()">Save this Hug ♡</button>
+    </div>
+
+    <!-- MEMORY FORM -->
+    <div id="memory-form" style="display:none">
+      <div class="form-group"><label>Date</label><input type="date" id="mem-date"></div>
+      <div class="form-group">
+        <label>Photo</label>
+        <div class="upload-zone">
+          <input type="file" accept="image/*" id="mem-file" onchange="preview('mem-file','mem-prev')">
+          <div class="upload-icon">📸</div>
+          <div class="upload-text">Click to upload a photo</div>
+          <img class="upload-preview" id="mem-prev">
+        </div>
+      </div>
+      <div class="form-group"><label>Tag (e.g. First Date, Travel…)</label><input type="text" id="mem-tag" placeholder="Our first date"></div>
+      <div class="form-group"><label>Memory</label><textarea id="mem-text" rows="3" placeholder="What do you remember most?"></textarea></div>
+      <div id="mem-coords-display" style="background:#fff;border:1.5px solid rgba(201,160,160,.3);border-radius:10px;padding:.65rem 1rem;font-size:.82rem;color:var(--warm-gray);margin-bottom:.5rem;">
+        📍 No location yet — close &amp; click the Memory Map, or enter coordinates below
+      </div>
+      <div style="display:flex;gap:.75rem">
+        <div class="form-group" style="flex:1"><label>Latitude</label><input type="number" step="any" id="mem-lat" placeholder="e.g. 19.0760"></div>
+        <div class="form-group" style="flex:1"><label>Longitude</label><input type="number" step="any" id="mem-lng" placeholder="e.g. 72.8777"></div>
+      </div>
+      <div class="form-group"><label>Location Name (optional)</label><input type="text" id="mem-location-name" placeholder="e.g. Marine Drive, Mumbai"></div>
+      <button class="btn-submit" id="mem-submit" onclick="submitMemory()">Pin to Memory Map ♡</button>
+    </div>
+
+    <!-- MILESTONE FORM -->
+    <div id="milestone-form" style="display:none">
+      <div class="form-group"><label>Date</label><input type="date" id="ms-date"></div>
+      <div class="form-group"><label>Milestone Title</label><input type="text" id="ms-label" placeholder="The day we met"></div>
+      <div class="form-group"><label>Story</label><textarea id="ms-note" rows="2" placeholder="A little story about this day…"></textarea></div>
+      <div class="form-group" style="display:flex;gap:1rem">
+        <div style="flex:0 0 80px"><label>Emoji</label><input type="text" id="ms-emoji" placeholder="💌" maxlength="2"></div>
+        <div style="flex:1"><label>Type</label>
+          <select id="ms-type">
+            <option value="normal">Regular Moment</option>
+            <option value="milestone">Big Milestone ✦</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-submit" id="ms-submit" onclick="submitMilestone()">Add to our Story ♡</button>
+    </div>
+    <!-- PLACE FORM -->
+    <div id="place-form" style="display:none">
+      <div id="place-coords-display" style="background:#fff;border:1.5px solid rgba(201,160,160,.3);border-radius:10px;padding:.65rem 1rem;font-size:.82rem;color:var(--warm-gray);margin-bottom:1.1rem;">
+        📍 No location selected yet — close this and click the map, or enter coordinates below
+      </div>
+      <div style="display:flex;gap:.75rem">
+        <div class="form-group" style="flex:1"><label>Latitude</label><input type="number" step="any" id="place-lat" placeholder="e.g. 19.0760"></div>
+        <div class="form-group" style="flex:1"><label>Longitude</label><input type="number" step="any" id="place-lng" placeholder="e.g. 72.8777"></div>
+      </div>
+      <div class="form-group"><label>Place Name</label><input type="text" id="place-label" placeholder="Where we had our first coffee"></div>
+      <div class="form-group"><label>Date</label><input type="date" id="place-date"></div>
+      <div class="form-group">
+        <label>Photo</label>
+        <div class="upload-zone">
+          <input type="file" accept="image/*" id="place-file" onchange="preview('place-file','place-prev')">
+          <div class="upload-icon">🗺️</div>
+          <div class="upload-text">Click to upload a photo of this place</div>
+          <img class="upload-preview" id="place-prev">
+        </div>
+      </div>
+      <div class="form-group"><label>Memory</label><textarea id="place-note" rows="2" placeholder="What happened here?"></textarea></div>
+      <div class="form-group" style="width:80px"><label>Emoji</label><input type="text" id="place-emoji" placeholder="📍" maxlength="2"></div>
+      <button class="btn-submit" id="place-submit" onclick="submitPlace()">Pin this Place ♡</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';   // same origin
+
+// ── PETALS ──────────────────────────────────────────────
+(()=>{
+  const c=document.getElementById('petals');
+  for(let i=0;i<18;i++){
+    const p=document.createElement('div'); p.className='petal';
+    p.style.cssText=`left:${Math.random()*100}vw;width:${8+Math.random()*8}px;height:${12+Math.random()*10}px;animation-duration:${8+Math.random()*12}s;animation-delay:${-Math.random()*14}s;background:${Math.random()>.5?'#F2D5D5':'#E8D5A8'};`;
+    c.appendChild(p);
+  }
+})();
+
+// ── HERO DATE ───────────────────────────────────────────
+document.getElementById('hero-date').textContent =
+  new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+// ── TOAST ───────────────────────────────────────────────
+function toast(msg,ms=2800){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),ms);
+}
+
+// ── FORMAT DATE ─────────────────────────────────────────
+function fmtDate(d){
+  if(!d) return '';
+  const [y,m,day]=d.split('-');
+  return new Date(y,m-1,day).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+}
+
+// ── IMAGE PREVIEW ───────────────────────────────────────
+function preview(inputId,prevId){
+  const f=document.getElementById(inputId).files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=e=>{
+    const img=document.getElementById(prevId); img.src=e.target.result; img.style.display='block';
+  }; r.readAsDataURL(f);
+}
+
+// ── MODAL ───────────────────────────────────────────────
+let currentType='hug';
+function openModal(type){
+  currentType=type;
+  ['hug-form','memory-form','milestone-form','place-form'].forEach(id=>document.getElementById(id).style.display='none');
+  const formId = type==='hug'?'hug-form':type==='memory'?'memory-form':type==='milestone'?'milestone-form':'place-form';
+  document.getElementById(formId).style.display='';
+  const titles={hug:'Add a Hug ♡',memory:'Pin a Memory ♡',milestone:'Mark a Milestone ♡',place:'Pin a Place ♡'};
+  document.getElementById('modal-title').textContent=titles[type];
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.querySelectorAll('.modal input,.modal textarea').forEach(el=>el.value='');
+  document.querySelectorAll('.upload-preview').forEach(el=>{el.style.display='none';el.src='';});
+  document.getElementById('modal-overlay').querySelectorAll('input[type=file]').forEach(el=>el.value='');
+  document.getElementById('mem-coords-display').textContent='📍 No location yet — close & click the Memory Map, or enter coordinates below';
+  document.getElementById('place-coords-display').textContent='📍 No location selected yet — close this and click the map, or enter coordinates below';
+  pendingMemLat=null; pendingMemLng=null;
+}
+function overlayClick(e){ if(e.target===e.currentTarget) closeModal(); }
+
+// ── HELPERS ─────────────────────────────────────────────
+function setLoading(btnId,on){
+  const b=document.getElementById(btnId); if(!b) return;
+  b.disabled=on; b.textContent=on?'Saving…':b.dataset.label||b.textContent;
+}
+
+// ════════════════════════════════════════════════════════
+// HUGS
+// ════════════════════════════════════════════════════════
+async function loadHugs(){
+  const g=document.getElementById('hugs-grid');
+  g.innerHTML='<div class="loading">Loading…</div>';
+  try{
+    const res=await fetch(`${API}/api/hugs`); const data=await res.json();
+    if(!data.length){ g.innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="ei">🫂</span>No hugs yet — add your first!</div>'; return; }
+    g.innerHTML=data.map(h=>`
+      <div class="hug-card">
+        ${h.img_path?`<img src="/static/uploads/${h.img_path}" alt="hug" loading="lazy">`:`<div class="hug-placeholder">🫂</div>`}
+        <div class="hug-card-body">
+          ${h.date?`<div class="card-date">${fmtDate(h.date)}</div>`:''}
+          <div class="hug-card-memory">"${h.memory}"</div>
+        </div>
+        <button class="card-del" onclick="deleteHug(${h.id})">✕</button>
+      </div>`).join('');
+  }catch(e){ g.innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="ei">⚠️</span>Could not load hugs.</div>'; }
+}
+
+async function submitHug(){
+  const memory=document.getElementById('hug-memory').value.trim();
+  if(!memory){ toast('Write a memory first! ♡'); return; }
+  const btn=document.getElementById('hug-submit'); btn.disabled=true; btn.textContent='Saving…';
+  const fd=new FormData();
+  fd.append('date',document.getElementById('hug-date').value);
+  fd.append('memory',memory);
+  const file=document.getElementById('hug-file').files[0]; if(file) fd.append('image',file);
+  try{
+    const res=await fetch(`${API}/api/hugs`,{method:'POST',body:fd});
+    if(!res.ok) throw new Error();
+    toast('Hug saved! 🫂'); closeModal(); loadHugs();
+  }catch{ toast('Something went wrong, try again.'); }
+  finally{ btn.disabled=false; btn.textContent='Save this Hug ♡'; }
+}
+
+async function deleteHug(id){
+  if(!confirm('Remove this hug?')) return;
+  await fetch(`${API}/api/hugs/${id}`,{method:'DELETE'});
+  toast('Removed.'); loadHugs();
+}
+
+// ════════════════════════════════════════════════════════
+// MEMORIES (MAP-BASED)
+// ════════════════════════════════════════════════════════
+let memoryMap, memoryMarkers=[], allMemories=[];
+let pendingMemLat=null, pendingMemLng=null;
+
+function initMemoryMap(){
+  memoryMap = L.map('memory-map',{zoomControl:true}).setView([20,0],2);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+    attribution:'&copy; <a href="https://carto.com/">CARTO</a>', maxZoom:19
+  }).addTo(memoryMap);
+
+  memoryMap.on('click', e=>{
+    pendingMemLat = +e.latlng.lat.toFixed(5);
+    pendingMemLng = +e.latlng.lng.toFixed(5);
+    openModal('memory');
+    document.getElementById('mem-lat').value = pendingMemLat;
+    document.getElementById('mem-lng').value = pendingMemLng;
+    document.getElementById('mem-coords-display').textContent =
+      `📍 Selected: ${pendingMemLat}, ${pendingMemLng}`;
+  });
+
+  loadMemories();
+}
+
+function makeMemIcon(emoji){
+  return L.divIcon({
+    html:`<div style="font-size:1.6rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25));cursor:pointer">${emoji||'📸'}</div>`,
+    className:'', iconSize:[32,32], iconAnchor:[16,28], popupAnchor:[0,-28]
+  });
+}
+
+function memoryPopupHtml(m){
+  return `<div class="map-popup">
+    ${m.img_path?`<img class="map-popup-img" src="/static/uploads/${m.img_path}" alt="memory" loading="lazy">`:''}
+    <div class="map-popup-emoji">${m.tag?'📸':''}</div>
+    <div class="map-popup-label">${m.location_name||m.tag||'Memory'}</div>
+    ${m.date?`<div class="map-popup-date">${fmtDate(m.date)}</div>`:''}
+    ${m.text?`<div class="map-popup-note">"${m.text}"</div>`:''}
+    <button class="map-popup-del" onclick="deleteMemory(${m.id})">Remove pin</button>
+  </div>`;
+}
+
+async function loadMemories(){
+  memoryMarkers.forEach(m=>memoryMap.removeLayer(m)); memoryMarkers=[];
+  const list=document.getElementById('memory-places-list');
+  try{
+    const res=await fetch(`${API}/api/memories`); const data=await res.json();
+    allMemories=data;
+    renderMemoryPins(data, list);
+  }catch(e){ console.error(e); }
+}
+
+function renderMemoryPins(data, list){
+  if(!list) list=document.getElementById('memory-places-list');
+  memoryMarkers.forEach(m=>memoryMap.removeLayer(m)); memoryMarkers=[];
+  list.innerHTML='';
+
+  const pinnable=data.filter(m=>m.lat&&m.lng);
+  if(!pinnable.length){
+    list.innerHTML='<span style="font-size:.82rem;color:var(--warm-gray);font-style:italic">No memory pins yet — click the map to add one</span>';
+    return;
+  }
+
+  pinnable.forEach(m=>{
+    const mk=L.marker([m.lat,m.lng],{icon:makeMemIcon(m.tag?'📸':'📍')}).addTo(memoryMap);
+    mk.bindPopup(memoryPopupHtml(m),{maxWidth:260});
+    memoryMarkers.push(mk);
+
+    const chip=document.createElement('div');
+    chip.className='place-chip';
+    chip.innerHTML=`<span class="place-chip-emoji">📸</span>${m.location_name||m.tag||fmtDate(m.date)||'Memory'}`;
+    chip.onclick=()=>{ memoryMap.flyTo([m.lat,m.lng],10,{duration:1.2}); mk.openPopup(); };
+    list.appendChild(chip);
+  });
+
+  if(memoryMarkers.length>1){
+    const grp=L.featureGroup(memoryMarkers);
+    memoryMap.fitBounds(grp.getBounds().pad(.25));
+  } else if(memoryMarkers.length===1){
+    memoryMap.setView([pinnable[0].lat,pinnable[0].lng],8);
+  }
+}
+
+function filterMemoryMap(q){
+  if(!q.trim()){ renderMemoryPins(allMemories); return; }
+  const lq=q.toLowerCase();
+  renderMemoryPins(allMemories.filter(m=>
+    (m.text||'').toLowerCase().includes(lq)||
+    (m.location_name||'').toLowerCase().includes(lq)||
+    (m.tag||'').toLowerCase().includes(lq)
+  ));
+}
+
+async function submitMemory(){
+  const text=document.getElementById('mem-text').value.trim();
+  if(!text){ toast('Write a memory first! ♡'); return; }
+  const btn=document.getElementById('mem-submit'); btn.disabled=true; btn.textContent='Saving…';
+  const fd=new FormData();
+  fd.append('date',document.getElementById('mem-date').value);
+  fd.append('tag',document.getElementById('mem-tag').value.trim());
+  fd.append('text',text);
+  const lat=document.getElementById('mem-lat').value;
+  const lng=document.getElementById('mem-lng').value;
+  if(lat) fd.append('lat',lat);
+  if(lng) fd.append('lng',lng);
+  fd.append('location_name',document.getElementById('mem-location-name').value.trim());
+  const file=document.getElementById('mem-file').files[0]; if(file) fd.append('image',file);
+  try{
+    const res=await fetch(`${API}/api/memories`,{method:'POST',body:fd});
+    if(!res.ok) throw new Error();
+    toast('Memory pinned! 📸'); closeModal(); loadMemories();
+    pendingMemLat=null; pendingMemLng=null;
+  }catch{ toast('Something went wrong, try again.'); }
+  finally{ btn.disabled=false; btn.textContent='Pin to Memory Map ♡'; }
+}
+
+async function deleteMemory(id){
+  if(!confirm('Remove this memory?')) return;
+  await fetch(`${API}/api/memories/${id}`,{method:'DELETE'});
+  toast('Removed.'); loadMemories();
+  memoryMap.closePopup();
+}
+
+// ════════════════════════════════════════════════════════
+// MILESTONES
+// ════════════════════════════════════════════════════════
+async function loadMilestones(){
+  const tl=document.getElementById('timeline');
+  tl.innerHTML='<div class="loading">Loading…</div>';
+  try{
+    const res=await fetch(`${API}/api/milestones`); const data=await res.json();
+    if(!data.length){ tl.innerHTML='<div class="empty-state"><span class="ei">✦</span>Add your first milestone to start your story.</div>'; return; }
+    tl.innerHTML=data.map(m=>`
+      <div class="tl-item">
+        <div class="tl-dot ${m.type==='milestone'?'gold':''}"></div>
+        <div class="tl-content">
+          ${m.date?`<div class="tl-date">${fmtDate(m.date)}</div>`:''}
+          <div class="tl-label">${m.label}</div>
+          ${m.note?`<div class="tl-note">${m.note}</div>`:''}
+          <div class="tl-emoji">${m.emoji||'♡'}</div>
+          <button class="tl-del" onclick="deleteMilestone(${m.id})">Remove</button>
+        </div>
+      </div>`).join('');
+  }catch(e){ tl.innerHTML='<div class="empty-state"><span class="ei">⚠️</span>Could not load milestones.</div>'; }
+}
+
+async function submitMilestone(){
+  const label=document.getElementById('ms-label').value.trim();
+  if(!label){ toast('Add a title! ♡'); return; }
+  const btn=document.getElementById('ms-submit'); btn.disabled=true; btn.textContent='Saving…';
+  try{
+    const res=await fetch(`${API}/api/milestones`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      date:document.getElementById('ms-date').value,
+      label,
+      note:document.getElementById('ms-note').value.trim(),
+      emoji:document.getElementById('ms-emoji').value.trim()||'♡',
+      type:document.getElementById('ms-type').value
+    })});
+    if(!res.ok) throw new Error();
+    toast('Milestone added! ✦'); closeModal(); loadMilestones();
+  }catch{ toast('Something went wrong, try again.'); }
+  finally{ btn.disabled=false; btn.textContent='Add to our Story ♡'; }
+}
+
+async function deleteMilestone(id){
+  if(!confirm('Remove this milestone?')) return;
+  await fetch(`${API}/api/milestones/${id}`,{method:'DELETE'});
+  toast('Removed.'); loadMilestones();
+}
+
+// ── INIT ────────────────────────────────────────────────
+loadHugs(); loadMilestones();
+
+// ════════════════════════════════════════════════════════
+// MAP & PLACES  (Leaflet)
+// ════════════════════════════════════════════════════════
+let map, pendingLat=null, pendingLng=null, markers=[], allPlaces=[];
+
+function initMap(){
+  map = L.map('map', {zoomControl:true}).setView([20, 0], 2);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+    attribution:'&copy; <a href="https://carto.com/">CARTO</a>',
+    maxZoom:19
+  }).addTo(map);
+
+  map.on('click', e=>{
+    pendingLat = +e.latlng.lat.toFixed(5);
+    pendingLng = +e.latlng.lng.toFixed(5);
+    openModal('place');
+    document.getElementById('place-lat').value = pendingLat;
+    document.getElementById('place-lng').value = pendingLng;
+    document.getElementById('place-coords-display').textContent =
+      `📍 Selected: ${pendingLat}, ${pendingLng}`;
+  });
+
+  // Init memory map too
+  initMemoryMap();
+  loadPlaces();
+}
+
+function makeIcon(emoji){
+  return L.divIcon({
+    html:`<div style="font-size:1.6rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25));cursor:pointer">${emoji||'📍'}</div>`,
+    className:'',
+    iconSize:[32,32],
+    iconAnchor:[16,28],
+    popupAnchor:[0,-28]
+  });
+}
+
+function placePopupHtml(p){
+  return `<div class="map-popup">
+    ${p.img_path?`<img class="map-popup-img" src="/static/uploads/${p.img_path}" alt="${p.label}" loading="lazy">`:''}
+    <div class="map-popup-emoji">${p.emoji||'📍'}</div>
+    <div class="map-popup-label">${p.label}</div>
+    ${p.date?`<div class="map-popup-date">${fmtDate(p.date)}</div>`:''}
+    ${p.note?`<div class="map-popup-note">"${p.note}"</div>`:''}
+    <button class="map-popup-del" onclick="deletePlace(${p.id})">Remove pin</button>
+  </div>`;
+}
+
+async function loadPlaces(){
+  markers.forEach(m=>map.removeLayer(m)); markers=[];
+  const list=document.getElementById('places-list');
+  try{
+    const res=await fetch(`${API}/api/places`); const data=await res.json();
+    allPlaces=data;
+    renderPlacePins(data, list);
+  }catch(e){ console.error(e); }
+}
+
+function renderPlacePins(data, list){
+  if(!list) list=document.getElementById('places-list');
+  markers.forEach(m=>map.removeLayer(m)); markers=[];
+  list.innerHTML='';
+
+  data.forEach(p=>{
+    const m=L.marker([p.lat,p.lng],{icon:makeIcon(p.emoji)}).addTo(map);
+    m.bindPopup(placePopupHtml(p),{maxWidth:260});
+    markers.push(m);
+
+    const chip=document.createElement('div');
+    chip.className='place-chip';
+    chip.innerHTML=`<span class="place-chip-emoji">${p.emoji||'📍'}</span>${p.label}`;
+    chip.onclick=()=>{ map.flyTo([p.lat,p.lng],10,{duration:1.2}); m.openPopup(); };
+    list.appendChild(chip);
+  });
+
+  if(!data.length) list.innerHTML='<span style="font-size:.82rem;color:var(--warm-gray);font-style:italic">No pins yet — click the map to add places that matter</span>';
+
+  if(markers.length>1){
+    const grp=L.featureGroup(markers);
+    map.fitBounds(grp.getBounds().pad(.25));
+  } else if(markers.length===1){
+    map.setView([data[0].lat,data[0].lng],8);
+  }
+}
+
+function filterPlacesMap(q){
+  if(!q.trim()){ renderPlacePins(allPlaces); return; }
+  const lq=q.toLowerCase();
+  renderPlacePins(allPlaces.filter(p=>
+    (p.label||'').toLowerCase().includes(lq)||
+    (p.note||'').toLowerCase().includes(lq)
+  ));
+}
+
+async function submitPlace(){
+  const lat=parseFloat(document.getElementById('place-lat').value);
+  const lng=parseFloat(document.getElementById('place-lng').value);
+  const label=document.getElementById('place-label').value.trim();
+  if(!label){ toast('Give this place a name! ♡'); return; }
+  if(isNaN(lat)||isNaN(lng)){ toast('Click the map or enter coordinates'); return; }
+  const btn=document.getElementById('place-submit'); btn.disabled=true; btn.textContent='Saving…';
+  try{
+    const fd=new FormData();
+    fd.append('lat',lat); fd.append('lng',lng); fd.append('label',label);
+    fd.append('note',document.getElementById('place-note').value.trim());
+    fd.append('emoji',document.getElementById('place-emoji').value.trim()||'📍');
+    fd.append('date',document.getElementById('place-date').value);
+    const file=document.getElementById('place-file').files[0]; if(file) fd.append('image',file);
+    const res=await fetch(`${API}/api/places`,{method:'POST',body:fd});
+    if(!res.ok) throw new Error();
+    toast('Place pinned! 📍'); closeModal(); loadPlaces();
+    pendingLat=null; pendingLng=null;
+  }catch{ toast('Something went wrong, try again.'); }
+  finally{ btn.disabled=false; btn.textContent='Pin this Place ♡'; }
+}
+
+async function deletePlace(id){
+  await fetch(`${API}/api/places/${id}`,{method:'DELETE'});
+  toast('Pin removed.'); loadPlaces();
+  map.closePopup();
+}
+
+// load Leaflet then init map
+const leafletScript=document.createElement('script');
+leafletScript.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+leafletScript.onload=initMap;
+document.head.appendChild(leafletScript);
+</script>
+</body>
+</html>
